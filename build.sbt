@@ -12,7 +12,6 @@ lazy val root = (project in file("."))
     libraryDependencies += "com.lihaoyi" %% "os-lib" % "0.9.1",
     libraryDependencies += "com.lihaoyi" %% "upickle" % "3.1.2",
     libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.5.0"
-
   )
 
 // See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.
