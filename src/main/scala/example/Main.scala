@@ -18,11 +18,36 @@ object Main{
       .option("header", "true") // Treats the first row as header
       .option("inferSchema", "true") // Infers column data types
       .csv(this.dataPath) 
-
-    val columnsToPrint = Seq("`20008-0.0`", "`20008-0.1`", "`20008-0.2`","`20008-0.3`") // Replace with your column names
-    val selectedDF: DataFrame = df.select(columnsToPrint.map(col): _*) 
-    selectedDF.show(100)
     
+    // note that spark works differently from python, it seems to have trouble reading
+    // a csv with an 'index' column. to avoid this problem, i just used awk to remove 
+    // the first column
+    val columnsToPrint = Seq("eid","`21022-0.0`","`31-0.0`") // Replace with your column names
+    val selectedDF: DataFrame = df.select(columnsToPrint.map(col): _*) 
+    
+    val outputPath:os.Path = os.pwd/"data"/"ukb40500_selected_cols.csv"
+    
+    selectedDF
+      .coalesce(1)
+      .write
+      .format("csv")
+      .option("header", "true") // Write the header row with column names
+      .mode("overwrite") 
+      .save(outputPath.toString)
+
+    // get the first item of the list - this only works if we only have one partition - aka
+    // the data has already been coalesced
+    val oldFilePath: os.Path = os.list(outputPath).filter(file => os.isFile(file) && file.ext == "csv").head
+
+    // create temp file before we remove directory
+    val tempFile: os.Path = os.pwd/"data"/"__tmp_conversion_spark.csv"
+    
+    // move file to folder name 
+    os.move(oldFilePath, tempFile)
+    os.remove.all(outputPath)
+    os.move(tempFile, outputPath)
+    os.remove.all(tempFile)
+
     // teardown at the end of main
     spark.stop()
   }
